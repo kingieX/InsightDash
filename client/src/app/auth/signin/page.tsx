@@ -1,14 +1,18 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export default function SignInPage() {
-  const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -16,63 +20,70 @@ export default function SignInPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await signIn("credentials", {
-      redirect: false,
-      email: form.email,
-      password: form.password,
-    });
+    setLoading(true);
 
-    if (res?.ok) {
-      router.push("/dashboard"); // or any protected page
-    } else {
-      setError("Invalid email or password");
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Login successful! Redirecting to dashboard...");
+        login(data.token, data.user);
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1000);
+        // console.log("Login successful:", data);
+      } else {
+        // alert(data.error || "Login failed");
+        toast.error(data.error || "Login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      // alert("Something went wrong");
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <main className="flex items-center justify-center h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow-md w-96"
-      >
-        <h1 className="text-2xl mb-4 font-semibold">Sign In</h1>
-
-        {error && <p className="text-red-500 mb-2">{error}</p>}
-
-        <input
+    <div className="max-w-md mx-auto mt-10 px-4">
+      <h1 className="text-2xl font-bold mb-6">Welcome Back</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
           name="email"
           type="email"
-          placeholder="Email"
+          placeholder="Email address"
           value={form.email}
           onChange={handleChange}
           required
-          className="w-full mb-4 p-2 border rounded"
         />
-
-        <input
+        <Input
           name="password"
           type="password"
           placeholder="Password"
           value={form.password}
           onChange={handleChange}
           required
-          className="w-full mb-4 p-2 border rounded"
         />
-
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-        >
-          Sign In
-        </button>
-
-        <p className="mt-4 text-sm">
-          Don't have an account?{" "}
-          <a href="/auth/signup" className="text-blue-600">
-            Sign up
-          </a>
-        </p>
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? "Signing in..." : "Sign In"}
+        </Button>
       </form>
-    </main>
+      <p className="text-sm mt-4 text-center">
+        Don’t have an account?{" "}
+        <Link href="/auth/signup" className="text-primary underline">
+          Sign Up
+        </Link>
+      </p>
+    </div>
   );
 }

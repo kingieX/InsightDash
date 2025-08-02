@@ -16,3 +16,8 @@ services:
 volumes:
   postgres-data:
 # sudo docker compose up -d
+# sudo docker ps
+# sudo lsof -i :5433
+# sudo kill -9 <PID>
+
+

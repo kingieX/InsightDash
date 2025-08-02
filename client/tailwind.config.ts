@@ -32,7 +32,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tw-animate-css")],
+  plugins: [require("tw-animate-css"), "@tailwindcss/typography"],
 };
 
 export default config;

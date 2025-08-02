@@ -12,7 +12,7 @@ export const handleCSVUpload = async (req: Request, res: Response) => {
     const csvString = file.buffer.toString("utf-8");
     const jsonData = await csv().fromString(csvString);
 
-    console.log("Parsed CSV:", jsonData);
+    // console.log("Parsed CSV:", jsonData);
 
     res.status(200).json({ data: jsonData });
   } catch (err) {

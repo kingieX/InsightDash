@@ -30,7 +30,15 @@ export const signup = async (req: Request, res: Response) => {
 
     const token = generateToken(user.id);
 
-    res.status(201).json({ message: "User registered", token });
+    res.status(201).json({
+      message: "User registered",
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Signup failed" });
@@ -50,7 +58,15 @@ export const login = async (req: Request, res: Response) => {
 
     const token = generateToken(user.id);
 
-    res.status(200).json({ message: "Login successful", token });
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Login failed" });

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import { Trash2 } from "lucide-react";
 
 export default function InsightsPage() {
   const router = useRouter();
@@ -61,6 +62,39 @@ export default function InsightsPage() {
     });
   }, [allInsights, sortOrder]);
 
+  // function to delete insight
+  const handleDelete = async (id: string) => {
+    const confirm = window.confirm(
+      "Are you sure you want to delete this insight?"
+    );
+    if (!confirm) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("You must be logged in to delete insights.");
+      router.push("/auth/signin");
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/insights/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Update state
+      setAllInsights((prev) => prev.filter((insight) => insight.id !== id));
+      toast.success("Insight deleted successfully.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete insight.");
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Filters */}
@@ -86,13 +120,23 @@ export default function InsightsPage() {
               data-aos-delay={idx * 100}
             >
               <CardContent className="p-4">
-                <h4 className="font-semibold text-base mb-1">
-                  {`Insight ${idx + 1}`}
-                </h4>
-                {/* <p className="text-xs text-muted-foreground mb-2 italic">
-                  Size: {insight.size ? `${insight.size} KB` : "Unknown"} | Tag:
-                  CSV
-                </p> */}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-semibold text-base mb-1">
+                      {`Insight ${idx + 1}`}
+                    </h4>
+
+                    {/* <p className="text-xs text-muted-foreground mb-2 italic">
+                      Size: {insight.size ? `${insight.size} KB` : "Unknown"} |
+                      Tag: CSV
+                    </p> */}
+                  </div>
+                  {/* Delete Icon */}
+                  <Trash2
+                    className="w-4 h-4 text-red-500 cursor-pointer hover:text-red-700"
+                    onClick={() => handleDelete(insight.id)}
+                  />
+                </div>
 
                 <div className="prose dark:prose-invert text-sm line-clamp-3 mb-2 max-w-none">
                   <ReactMarkdown rehypePlugins={[rehypeRaw]}>

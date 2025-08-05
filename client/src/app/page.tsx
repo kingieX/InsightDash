@@ -89,7 +89,7 @@ export default function HomePage() {
         <h3 className="text-xl font-semibold">
           Ready to make sense of your data?
         </h3>
-        <Link href="/upload">
+        <Link href="/insight">
           <Button size="lg">Get Started</Button>
         </Link>
       </div>

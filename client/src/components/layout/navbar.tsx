@@ -20,7 +20,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/dashboard", label: "Dashboard", authOnly: true },
   { href: "/insights", label: "Insights", authOnly: true },
-  { href: "/upload", label: "Upload", authOnly: true },
+  // { href: "/upload", label: "Upload", authOnly: true },
 ];
 
 export function Navbar() {
@@ -99,6 +99,9 @@ export function Navbar() {
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40 mt-2">
+                <DropdownMenuItem asChild>
+                  <Link href="/insight">Generate Insight</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>

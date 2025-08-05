@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../../prisma/client";
+const { getDashboardData } = require("../services/userService");
 
 // GET /user/profile
 export const getUserProfile = async (req: Request, res: Response) => {
@@ -91,5 +92,18 @@ export const updatePassword = async (req: Request, res: Response) => {
   } catch (err) {
     console.error("Password update error:", err);
     res.status(500).json({ error: "Failed to update password" });
+  }
+};
+
+//
+export const getDashboard = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const dashboardData = await getDashboardData(userId);
+
+    res.json(dashboardData);
+  } catch (err) {
+    console.error("Dashboard Error:", err);
+    res.status(500).json({ error: "Something went wrong." });
   }
 };

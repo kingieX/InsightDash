@@ -29,8 +29,8 @@ export default function HomePage() {
           insights. No data science background required.
         </p>
         <div className="flex justify-center gap-4">
-          <Link href="/upload">
-            <Button size="lg">Upload CSV</Button>
+          <Link href="/insight">
+            <Button size="lg">Generate Insight</Button>
           </Link>
           <Link href="/dashboard">
             <Button size="lg" variant="outline">

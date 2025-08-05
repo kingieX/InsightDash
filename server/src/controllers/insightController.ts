@@ -84,6 +84,7 @@ export const getInsightById = async (req: AuthRequest, res: Response) => {
     }
 
     res.json({ insight });
+    console.log("Insight: ", insight);
   } catch (err) {
     console.error("Get Insight Error:", err);
     res.status(500).json({ error: "Failed to fetch insight" });

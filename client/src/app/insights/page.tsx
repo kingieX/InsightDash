@@ -1,43 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
-import axios from "axios";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import axios from "axios";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
 
-export default function InsightPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [chartData, setChartData] = useState<any | null>(null);
-
+export default function InsightsPage() {
   const router = useRouter();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    setFile(selected || null);
-  };
+  const [allInsights, setAllInsights] = useState<any[]>([]);
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
-  const handleUploadAndGenerateInsight = async () => {
-    if (!file) {
-      toast.error("Please select a CSV file.");
-      return;
-    }
+  useEffect(() => {
+    AOS.init();
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -45,127 +29,96 @@ export default function InsightPage() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    const fetchDashboardData = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/insights`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-    try {
-      setUploading(true);
-
-      // Step 1: Upload and parse CSV
-      const uploadRes = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/upload`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const parsedData = uploadRes.data.data;
-      toast.success("CSV uploaded and parsed successfully.");
-
-      // Step 2: Send parsed JSON to generate insights
-      const insightRes = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/insights/insight`,
-        { data: parsedData },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const insight = insightRes.data.savedInsight.insight;
-      if (!insight) {
-        throw new Error("No insight generated.");
+        // Fix: unwrap the insights array from the response
+        const fetchedInsights = res.data.insights;
+        setAllInsights(fetchedInsights || []);
+        console.log("Fetched insights:", fetchedInsights);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load insights.");
       }
-      // console.log("Insight data:", insight);
+    };
 
-      // Remove markdown code block formatting before parsing
-      const cleanedInsight = insight.replace(/^```json\s*|\s*```$/g, "");
-      const parsedInsight = JSON.parse(cleanedInsight);
+    fetchDashboardData();
+  }, [router]);
 
-      setSummary(parsedInsight.summary);
-      setChartData(parsedInsight.chartData);
-
-      toast.success("Insight generated successfully.");
-    } catch (error: any) {
-      console.error(error);
-      if (error.response?.status === 401) {
-        router.push("/auth/signin");
-      } else {
-        toast.error("Failed to upload or generate insights.");
-      }
-    } finally {
-      setUploading(false);
-    }
-  };
+  const sortedInsights = useMemo(() => {
+    return [...allInsights].sort((a, b) => {
+      return sortOrder === "newest"
+        ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }, [allInsights, sortOrder]);
 
   return (
-    <div className="max-w-3xl mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Upload CSV & Generate Insight</h1>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Filters */}
+      <div className="flex justify-between items-center mt-10">
+        <h2 className="text-xl font-semibold">All Insights</h2>
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
+          className="border rounded px-2 py-1 text-sm"
+        >
+          <option value="newest">Sort: Newest First</option>
+          <option value="oldest">Sort: Oldest First</option>
+        </select>
+      </div>
 
-      <Card>
-        <CardContent className="p-4 space-y-4">
-          <Input type="file" accept=".csv" onChange={handleFileChange} />
-          <Button onClick={handleUploadAndGenerateInsight} disabled={uploading}>
-            {uploading ? "Processing..." : "Upload & Generate Insight"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {summary && (
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            <h2 className="font-semibold text-xl mb-2">Generated Insight</h2>
-
-            <div className="prose dark:prose-invert max-w-none text-sm">
-              <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                {summary}
-              </ReactMarkdown>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {chartData && (
-        <div className="space-y-8">
-          {chartData.departmentSalary && (
-            <Card>
+      {/* Insights List */}
+      {sortedInsights.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {sortedInsights.map((insight, idx) => (
+            <Card
+              key={insight.id}
+              data-aos="fade-up"
+              data-aos-delay={idx * 100}
+            >
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-2">Salary by Department</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData.departmentSalary}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="department" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="salary" fill="#4f46e5" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <h4 className="font-semibold text-base mb-1">
+                  {`Insight ${idx + 1}`}
+                </h4>
+                {/* <p className="text-xs text-muted-foreground mb-2 italic">
+                  Size: {insight.size ? `${insight.size} KB` : "Unknown"} | Tag:
+                  CSV
+                </p> */}
+
+                <div className="prose dark:prose-invert text-sm line-clamp-3 mb-2 max-w-none">
+                  <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                    {typeof insight.insight === "string"
+                      ? "..." + insight.insight.slice(200, 700) + "..."
+                      : "No summary available."}
+                  </ReactMarkdown>
+                </div>
+
+                <p className="text-sm text-muted-foreground mb-1">
+                  {new Date(insight.createdAt).toLocaleString()}
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => router.push(`/insights/${insight.id}`)}
+                >
+                  View Insight
+                </Button>
               </CardContent>
             </Card>
-          )}
-
-          {chartData.ageSalary && (
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-2">Salary by Age</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData.ageSalary}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="age" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="salary" fill="#059669" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
+          ))}
         </div>
+      ) : (
+        <p className="text-sm text-muted-foreground" data-aos="fade-up">
+          No insights yet. Upload a CSV to generate one.
+        </p>
       )}
     </div>
   );

@@ -85,7 +85,9 @@ export default function InsightPage() {
 
       // Remove markdown code block formatting before parsing
       const cleanedInsight = insight.replace(/^```json\s*|\s*```$/g, "");
+      console.log("Cleaned Insight: ", cleanedInsight);
       const parsedInsight = JSON.parse(cleanedInsight);
+      console.log("Parsed Insight:", parsedInsight);
 
       setSummary(parsedInsight.summary);
       setChartData(parsedInsight.chartData);

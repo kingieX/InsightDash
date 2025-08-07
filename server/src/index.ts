@@ -9,9 +9,20 @@ import userRoutes from "./routes/userRoutes";
 dotenv.config();
 
 const app = express();
+
+const allowedOrigins = [
+  "http://localhost:3000", // for local dev
+  "https://yourfrontenddomain.com", // for deployed frontend
+];
+
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: "10mb" }));
 
 // Route for handling CSV & AI

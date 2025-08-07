@@ -12,7 +12,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:3000", // for local dev
-  "https://yourfrontenddomain.com", // for deployed frontend
+  "https://insightdash.vercel.app", // for deployed frontend
   "*",
 ];
 

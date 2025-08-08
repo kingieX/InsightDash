@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InsightDash Frontend
 
-## Getting Started
+## Overview
 
-First, run the development server:
+The frontend for **InsightDash** is built with **Next.js + Tailwind CSS** to deliver a responsive and modern user experience for uploading data, viewing AI-generated insights, and managing user accounts.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+
+- **Authentication pages** (Sign in / Sign up) integrated with backend JWT auth.
+- **Dashboard** to view uploaded insights and quick stats.
+- **Insight detail pages** with Markdown rendering & chart visualization.
+- **Profile management** (update info, change password).
+- **Generate insight page** for generating insight using parsed JSON data from uploaded file.
+- **Privacy Policy**, **Terms of Service**, and **Contact** pages.
+- **Light/Dark mode** toggle.
+- **AOS animations** for smooth transitions.
+
+## Technologies Used
+
+- Next.js
+- Tailwind CSS
+- React Context API for auth
+- AOS (Animate On Scroll)
+- Chart.js for visualizations
+- Sonner for toast notifications
+- Axios for API requests
+- Shadcn for components generation
+
+## Project Structure
+
+```
+frontend/
+│── app/
+│   ├── auth/           # Auth pages
+│   ├── dashboard/      # Dashboard page
+│   ├── insight/        # Generate insight page
+│   ├── insights/       # Insight detail pages
+│   ├── profile/        # Profile management
+│   ├── privacy/        # Privacy Policy
+│   ├── terms/          # Terms of Service
+│   └── contact/        # Contact page
+│── components/         # Reusable UI components
+│── context/            # Auth context
+│── styles/             # Tailwind styles
+│── package.json
+│── README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.env.local` file:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+NEXT_PUBLIC_BACKEND_URL=https://insightdash-backend-nfag.onrender.com
+```
 
-## Learn More
+## Running Locally
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Hosted on **Vercel**
+- Connects to backend hosted on **Render**
